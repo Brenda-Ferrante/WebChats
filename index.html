@@ -136,6 +136,47 @@
 
     .botStatus {font-size: 13px; margin-left: 44px;}
 
+
+    @media (max-width: 768px) {
+        .grid {
+          grid-template-columns: 1fr; /* una sola columna */
+        }
+      
+        .left {
+          order: 2; /* mueve la lista de personas debajo del chat */
+          margin-top: 12px;
+        }
+      
+        .main {
+          order: 1;
+        }
+      
+        .transcript {
+          height: auto; /* permite que crezca con el contenido */
+          max-height: 60vh; /* limita la altura del chat */
+        }
+      
+        .botBtn {
+          flex-direction: row; /* nombre e imagen en una línea */
+          align-items: center;
+        }
+      
+        header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+        }
+      
+        h1 {
+          font-size: 22px;
+        }
+      
+        .subtitle {
+          font-size: 13px;
+          line-height: 1.4;
+        }
+    }
+
   </style>  
 
 </head>
@@ -1666,3 +1707,4 @@ reset();
 </html>
 
  
+
