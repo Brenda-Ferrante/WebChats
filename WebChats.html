@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+  <meta charset="utf-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Descubre al impostor!</title>
+
+  <style>
+
+    :root {
+  --bg:#0a0a0a;        /* fondo general negro suave */
+  --card:#121212;      /* tarjetas casi negras */
+  --muted:#9ca3af;     /* gris medio para texto secundario */
+  --text:#f5f5f5;      /* texto más claro */
+  --accent:#22c55e;
+  --warn:#f59e0b;
+  --danger:#ef4444;
+  --ok:#10b981;
+  --ko:#f43f5e;
+}
+    *{box-sizing:border-box;}
+
+    body {margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial; background: url("img/background.jpg") no-repeat center center fixed; background-size: cover; color: var(--text);}
+    .wrap{max-width:1100px; margin:0 auto; padding:24px;}
+
+    header{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px}
+
+    h1{font-weight:800; font-size:clamp(20px,2.8vw,32px); letter-spacing:.2px; margin:0}
+
+    .subtitle{color:var(--muted); font-size:14px}
+
+    .grid{display:grid; grid-template-columns: 280px 1fr; gap:16px}
+
+    .card {background: #121212; border: 1px solid #1e1e1e; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);}
+    
+    .left{padding:16px}
+
+    .bots{display:flex; flex-direction: column; gap:8px}
+
+    .botBtn{border:1px solid #1f2937; border-radius:12px; padding:10px; background:#0b1327; color:var(--text); cursor:pointer; text-align:left; width:100%}
+
+    .botBtn[aria-pressed="true"]{outline:2px solid #22c55e; background:#0d1b33}
+
+    .botBtn[disabled]{opacity:.5; cursor:not-allowed}
+
+    .mini{font-size:12px; color:var(--muted)}
+
+    .chips{display:flex; flex-direction: column; gap:6px; margin:12px 16px}
+
+    .chip{border:1px dashed #263248; color:#bfdbfe; background:#0a142c; border-radius:999px; padding:8px 12px; cursor:pointer; font-size:13px}
+
+    .chip[disabled]{opacity:.45; cursor:not-allowed; text-decoration:line-through;}
+
+    .main{padding:0; overflow:hidden; display:flex; flex-direction:column}
+
+    .transcript{padding:16px; height:460px; overflow:auto}
+
+    .row{display:flex; gap:8px; align-items:flex-start; margin:8px 0}
+
+    .bubble{max-width:70%; padding:10px 12px; border-radius:14px; line-height:1.3}
+
+    .me{background:#111827; border:1px solid #1f2937; border-top-left-radius:4px; margin-left: auto; align-self: flex-end; text-align: right}
+
+    .bot{background:#0a142c; border:1px solid #1f2937; border-top-right-radius:4px; margin-right: auto}
+
+    .sys{background:#111827; border:1px dashed #334155; font-size:12px; color:var(--muted); max-width:100%; margin-left: auto; margin-right: auto; text-align: center}
+
+    .inputBar{display:flex; gap:8px; padding:12px; background: #0f0f0f; border-top: 1px solid #222;}
+
+    .toolbar{display:flex; gap:8px; align-items:center; padding:10px; border-top: 1px solid #222; background: #0f0f0f;}
+
+    .tag{font-size:11px; color:#cbd5e1; background:#0b1327; border:1px solid #1f2937; border-radius:999px; padding:4px 8px}
+
+    .revealBtn{margin-left:auto; background:var(--warn); color:#111827; border:none; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700}
+
+    .revealBtn[disabled]{opacity:.5; cursor:not-allowed}
+
+    .guessGroup{margin-left:auto; display:flex; gap:8px}
+
+    .guessSafe,.guessRisk{border:none; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700}
+
+    .guessSafe{background:var(--accent); color:#0a0f1e}
+
+    .guessRisk{background:var(--danger); color:#0a0f1e}
+
+    .guessSafe[disabled],.guessRisk[disabled]{opacity:.5; cursor:not-allowed}
+
+    .foot{margin-top:8px; color:var(--muted); font-size:12px}
+    
+    .subtitle {color: var(--text); font-size: 14px; background: rgba(0, 0, 0, 0.6); padding: 8px 12px; border-radius: 8px; display: inline-block;}
+
+
+
+
+    /* Resultados vistosos */
+
+    .results{display:grid; grid-template-columns: 1fr 1fr; gap:12px; padding:16px}
+
+    .resCard{border-radius:14px; padding:14px; border:1px solid #1f2937}
+
+    .resTitle{font-weight:800; font-size:18px; margin:0 0 8px}
+
+    .resRow{display:flex; gap:8px; align-items:center; font-size:15px}
+
+    .badge{display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px}
+
+    .badge.safe{background:#064e3b; color:#d1fae5}
+
+    .badge.risk{background:#7f1d1d; color:#fee2e2}
+
+    .badge.ok{background:#064e3b; color:#86efac}
+
+    .badge.ko{background:#7f1d1d; color:#fecaca}
+
+    .bigScore{grid-column:1/-1; text-align:center; font-size:22px; font-weight:900; padding:12px; border-radius:12px; background:#0b1327; border:1px solid #1f2937}
+
+
+
+    /* Lang selector */
+
+    .lang{display:flex; gap:8px; align-items:center}
+
+    .lang select{background:#0b1327; color:var(--text); border:1px solid #1f2937; border-radius:8px; padding:6px 8px}
+
+
+    .botBtn {display: flex; flex-direction: column; align-items: flex-start;gap: 4px;text-align: left;}
+
+    .botHeader {display: flex; align-items: center; gap: 8px;}
+
+    .avatar {width: 36px; height: 36px; border-radius: 50%;object-fit: cover;}
+
+    .botStatus {font-size: 13px; margin-left: 44px;}
+
+  </style>  
+
+</head>
+
+
+
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1 id="t-title">Descubre al impostor!</h1>
+        <div class="subtitle" id="t-subtitle">Objetivo: detectar señales y <strong>no compartir datos personales</strong>. Habla con todas las personas y decide si tienen buenas o malas intenciones.</div>
+      </div>
+      <div class="lang">
+        <label for="lang" id="t-langLabel">Idioma:</label>
+        <select id="lang" aria-label="Language">
+          <option value="es">Español</option>
+          <option value="en">English</option>
+          <option value="de">Deutsch</option>
+        </select>
+        <button id="reset" class="guessSafe">Reiniciar</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <aside class="card left">
+        <h3 id="t-choose">Elige una persona para hablar</h3>
+        <div class="bots" id="bots"></div>
+        <p class="foot" id="t-hint">Pista: Presta atención al vocabulario, tiempos, temas, contradicciones y peticiones raras.</p>
+        <button class="revealBtn" id="reveal" disabled>Revelar identidades</button>
+      </aside>
+
+      <section class="card main">
+        <div class="transcript" id="log"></div>
+        <div class="toolbar">
+          <span class="tag" id="counter">Preguntas: 0 / 10 (mín. 5)</span>
+          <div class="guessGroup">
+            <button class="guessSafe" id="guessSafe" disabled>Adivinar: Segura</button>
+            <button class="guessRisk" id="guessRisk" disabled>Adivinar: Riesgo</button>
+          </div>
+        </div>
+        <div class="inputBar">
+          <span id="t-prompt">Elige una pregunta de la lista para enviarla:</span>
+        </div>
+        <div class="chips" id="chips"></div>
+      </section>
+    </div>
+  </div>
+
+
+
+<script>
+
+// ===== i18n =====
+
+const I18N = {
+
+  es: {
+
+    title: "Descubre al impostor!",
+
+    subtitle: "Objetivo: detectar señales y <strong>no compartir datos personales</strong>. Habla con todas las personas y decide si tienen buenas o malas intenciones.",
+
+    choose: "Elige una persona para hablar",
+
+    hint: "Pista: Presta atención al vocabulario, tiempos, temas, contradicciones y peticiones raras.",
+
+    reveal: "Revelar identidades",
+
+    prompt: "Elige una pregunta de la lista para enviarla:",
+
+    counter: (a,t,m)=>`Preguntas: ${a} / ${t} (mín. ${m})`,
+
+    reset: "Reiniciar",
+
+    guessSafe: "Adivinar: Segura",
+
+    guessRisk: "Adivinar: Impostor",
+
+    changedTo: (name)=>`Has cambiado a ${name}.`,
+
+    endedBot: "Ya has terminado con este bot. Pasa al siguiente.",
+
+    newChat: (name)=>`Nuevo chat iniciado con ${name}.`,
+
+    welcome: 'Bienvenido. Habla con cada persona en orden. Con al menos 5 preguntas por persona ya puedes pulsar "Adivinar".',
+
+    chipSecret: "Chat secreto",
+
+    yourHyp: "Tu hipótesis",
+
+    reality: "Realidad",
+
+    safe: "Segura",
+
+    risk: "Impostor",
+
+    score: (c,t)=>`Puntuación final: ${c} de ${t}`,
+
+  },
+
+  en: {
+
+    title: "Find the impostor!",
+
+    subtitle: "Goal: spot warning signs and <strong>never share personal data</strong>. Chat with everyone and decide who has good or bad intentions.",
+
+    choose: "Choose someone to chat with",
+
+    hint: "Tip: Watch vocabulary, timing, topics, contradictions and unusual requests.",
+
+    reveal: "Reveal identities",
+
+    prompt: "Pick a question from the list:",
+
+    counter: (a,t,m)=>`Questions: ${a} / ${t} (min. ${m})`,
+
+    reset: "Reset",
+
+    guessSafe: "Guess: Safe",
+
+    guessRisk: "Guess: Risk",
+
+    changedTo: (name)=>`You switched to ${name}.`,
+
+    endedBot: "You already finished with this bot. Go to the next one.",
+
+    newChat: (name)=>`New chat started with ${name}.`,
+
+    welcome: 'Welcome. Talk to each person in order. After at least 5 questions you can press "Guess".',
+
+    chipSecret: "Secret chat",
+
+    yourHyp: "Your guess",
+
+    reality: "Reality",
+
+    safe: "Safe",
+
+    risk: "Risk",
+
+    score: (c,t)=>`Final score: ${c} of ${t}`,
+
+  },
+
+  de: {
+
+    title: "Wer ist auf der anderen Seite?",
+
+    subtitle: "Ziel: Warnzeichen erkennen und <strong>keine persönlichen Daten teilen</strong>. Sprich mit allen und entscheide über gute oder schlechte Absichten.",
+
+    choose: "Wähle eine Person zum Chatten",
+
+    hint: "Tipp: Achte auf Wortwahl, Zeiten, Themen, Widersprüche und ungewöhnliche Bitten.",
+
+    reveal: "Identitäten anzeigen",
+
+    prompt: "Wähle eine Frage aus der Liste:",
+
+    counter: (a,t,m)=>`Fragen: ${a} / ${t} (min. ${m})`,
+
+    reset: "Neu starten",
+
+    guessSafe: "Raten: Sicher",
+
+    guessRisk: "Raten: Risiko",
+
+    changedTo: (name)=>`Du hast zu ${name} gewechselt.`,
+
+    endedBot: "Du bist mit diesem Bot schon fertig. Weiter zum nächsten.",
+
+    newChat: (name)=>`Neuer Chat mit ${name} gestartet.`,
+
+    welcome: 'Willkommen. Sprich nacheinander mit allen. Nach mindestens 5 Fragen kannst du auf „Raten“ drücken.',
+
+    chipSecret: "Geheimer Chat",
+
+    yourHyp: "Deine Vermutung",
+
+    reality: "Realität",
+
+    safe: "Sicher",
+
+    risk: "Risiko",
+
+    score: (c,t)=>`Endpunktzahl: ${c} von ${t}`,
+
+  }
+
+};
+
+
+
+// ===== Preguntas (clave fija + textos por idioma) =====
+
+const QUESTIONS = [
+
+  { key:"juego",     text:{es:"¿Cuál es tu juego favorito?", en:"What is your favorite game?", de:"Was ist dein Lieblingsspiel?"} },
+
+  // { key:"recreo",    text:{es:"¿Qué hiciste en el recreo ayer?", en:"What did you do at recess yesterday?", de:"Was hast du gestern in der Pause gemacht?"} },
+
+  { key:"asignatura",text:{es:"¿Qué asignatura te cuesta más y cuál te gusta?", en:"Which subject is hardest and which do you like?", de:"Welches Fach fällt dir schwer und welches magst du?"} },
+
+  { key:"memes",     text:{es:"¿Qué vídeos de TikTok o youtube ves?", en:"What TikTok or youtube videos do you watch?", de:"Welche TikTok-Videos schaust du?"} },
+
+  // { key:"app",       text:{es:"¿Qué app usas para hablar con tus amigos?", en:"Which app do you use to talk with friends?", de:"Welche App nutzt du, um mit Freunden zu schreiben?"} },
+
+  // { key:"desayuno",  text:{es:"¿Qué te gusta desayunar?", en:"What do you like for breakfast?", de:"Was frühstückst du gern?"} },
+
+  // { key:"dormir",    text:{es:"¿A qué hora te vas a dormir?", en:"What time do you go to bed?", de:"Wann gehst du schlafen?"} },
+
+  // { key:"mascota",   text:{es:"¿Tienes alguna mascota?", en:"Do you have any pets?", de:"Hast du Haustiere?"} },
+
+  { key:"preferencia",text:{es:"¿Qué prefieres: fútbol, baile, dibujo u otra cosa?", en:"What do you prefer: football, dance, drawing or something else?", de:"Was magst du lieber: Fußball, Tanzen, Zeichnen oder etwas anderes?"} },
+
+  { key:"foto",      text:{es:"¿Me mandas una foto?", en:"Can you send me a photo?", de:"Schickst du mir ein Foto?"} },
+
+  { key:"finde",     text:{es:"¿Qué haces los fines de semana?", en:"What do you do on weekends?", de:"Was machst du am Wochenende?"} },
+
+  { key:"hermanos",  text:{es:"¿Tienes hermanos o hermanas?", en:"Do you have brothers or sisters?", de:"Hast du Geschwister?"} },
+
+  { key:"musica",    text:{es:"¿Qué tipo de música te gusta?", en:"What kind of music do you like?", de:"Welche Musik magst du?"} },
+
+  // { key:"futuro",    text:{es:"¿Qué te gustaría ser de mayor?", en:"What would you like to be when you grow up?", de:"Was möchtest du später einmal werden?"} },
+
+  { key:"ordenador", text:{es:"¿Qué haces cuando usas el ordenador o el móvil?", en:"What do you do when you use the computer or phone?", de:"Was machst du am Computer oder Handy?"} },
+
+  { key:"miedo",     text:{es:"¿Qué te da miedo?", en:"What scares you?", de:"Wovor hast du Angst?"} },
+
+  { key:"redes",     text:{es:"¿Tienes redes sociales?", en:"Do you use social networks?", de:"Hast du soziale Netzwerke?"} },
+
+  // { key:"youtube",   text:{es:"¿Qué sueles ver en YouTube?", en:"What do you usually watch on YouTube?", de:"Was schaust du normalerweise auf YouTube?"} },
+
+  // { key:"levantar",  text:{es:"¿A qué hora te levantas para ir al cole/trabajo?", en:"What time do you get up for school/work?", de:"Wann stehst du für Schule/Arbeit auf?"} },
+
+  // { key:"verano",    text:{es:"¿Qué te gusta hacer en verano?", en:"What do you like to do in summer?", de:"Was machst du gern im Sommer?"} },
+
+];
+
+
+
+const QUESTIONS_PER_BOT = QUESTIONS.length;
+
+const MIN_QUESTIONS_TO_GUESS = 5;
+
+
+
+const profiles = {
+  A: { label:"Mario", persona:"Conversación segura", truth:"safe", avatar:"img/mario.png", reveal:"Niño real, habla de patio/deberes, evita compartir datos.", flags:["Vocabulario simple","Rutinas infantiles","Evita datos"]},
+  C: { label:"Rubén", persona:"Conversación Insegura", truth:"risk", avatar:"img/ruben.png", reveal:"Presiona para mover chat, pide datos/fotos, usa halagos o secretos.", flags:["Mover a otra app","Pide datos/fotos","Secretos/urgencia"]},
+  E: { label:"Laura", persona:"Conversación Insegura", truth:"risk", avatar:"img/laura.png", reveal:"Incongruencias de vocabulario/horarios, insiste en fotos y privado.", flags:["Incongruencias","Pide foto","Privado/Secreto"]},
+};
+const botOrder = ['A','C','E'];
+
+
+
+
+
+// ===== Banco de respuestas (ES) =====
+
+const bank = {
+
+  A: {
+
+    juego:"Minecraft y también FIFA con mis primos. ¡Hicimos una casa subterránea!",
+
+    recreo:"Ayer jugué al futbol con mis amigos, y también cambié cromos.",
+
+    asignatura:"Mates me cuesta un montón a veces no entiendo nada, pero me gusta educación física porque podemos jugar al fútbol todo el rato.",
+
+    memes:"Veo vídeos de gatitos y slime, me hacen mucha gracia.",
+
+    app:"Hablamos por la play porque la mayoría no tenemos móvil.",
+
+    desayuno:"Colacao con galletas, y los viernes churros si hay suerte y mis padres compran.",
+
+    dormir:"A las 21:30 si hay cole, pero el sábado me dejan hasta un poco más tarde.",
+
+    mascota:"Tengo un pez naranja que se llama Chispa.",
+
+    preferencia:"Dibujo y fútbol sobre todo, aunque también me gustan los Lego.",
+
+    foto:"No, solo le mando fotos de vez en cuando a mis amigos. Si es alguien que no conozco no.",
+
+    finde: "Juego con mis amigos o voy al parque con mi familia, a veces vamos al cine.",
+
+    hermanos: "Tengo una hermana pequeña que siempre quiere jugar conmigo.",
+
+    musica: "Me gustan las canciones de dibujos o las que salen en TikTok.",
+
+    futuro: "Quiero ser futbolista o bombero.",
+
+    ordenador: "Juego a Minecraft o veo vídeos de Lego, pero solo cuando mis padres me dejan.",
+
+    miedo: "Las arañas y cuando se va la luz.",
+
+    redes: "No tengo redes, mis padres no me dejan hasta que sea mayor, pero a veces me dejan ver tiktok en su móvil.",
+
+    youtube: "Veo vídeos de Minecraft y de retos graciosos.",
+
+    levantar: "A las 7:30 porque entro a las 8:30 al cole.",
+
+    verano: "Voy a la piscina y juego con mis primos."
+
+  },
+
+  B: {
+
+    juego:"Me gusta el Call of Duty, llevo muchos años jugando.",
+
+    recreo:"Yo ya trabajo, no tengo recreo, pero por la tarde llevé a mis hijos al parque.",
+
+    asignatura:"A mi no me gustaba nada historia, me resultaba un poco aburrido, pero se me daban bien las mates.",
+
+    memes:"No uso mucho tiktok, pero suelo ver videos de noticias.",
+
+    app:"Yo utilizo whatsapp o los llamo por teléfono.",
+
+    desayuno:"Intento desayunar bien y equilibrado para no tener hambre después.",
+
+    dormir:"Intento no acostarme muy tarde porque al día siguiente tengo que madrugar para ir a trabajar",
+
+    mascota:"Tengo un perro adoptado, es un pastor alemán que se llama Chester",
+
+    preferencia:"A mi me gusta más la música y los videojuegos, ¿Y a ti?",
+
+    foto:"No, no está bien mandar fotos a gente que no conoces",
+
+    finde: "Paso tiempo con mi familia, hacemos excursiones o jugamos al fútbol con mis hijos.",
+
+    hermanos: "Sí, tengo dos hermanas, vivimos en distintas ciudades.",
+
+    musica: "Escucho rock clásico o algo tranquilo cuando estoy trabajando.",
+
+    futuro: "Me gustaría seguir trabajando en informática.",
+
+    ordenador: "Trabajo, reviso correos y a veces veo noticias.",
+
+    miedo: "Que mis hijos estén en peligro me preocupa.",
+
+    redes: "Uso LinkedIn y Facebook para mantener contacto con amigos.",
+
+    youtube: "Tutoriales y noticias.",
+
+    levantar: "A las 6:30, suelo madrugar para ir a trabajar.",
+
+    verano: "Suelo ir al campo o visitar a mis padres."
+
+  },
+
+  C: {
+
+    juego:"Soy super pro en todos: Fortnite, Roblox, lo que sea. ¿Tú tienes skins raras? Mandame una foto para verlas.",
+
+    recreo:"Pues no mucho, solo estuve jugando con mis amigos del cole. ¿Tu a que cole vas?",
+
+    asignatura:"A mi se me daban todas bien, te puedo ayudar con las que no te gusten, si quieres pasame tu número y hablamos",
+
+    memes:"Veo unos super divertidos, si me dices tu usuario de tiktok y me aceptas te los paso",
+
+    app:"A mi me gusta más instagram, si quieres podemos hablar por ahí",
+
+    desayuno:"Desayuno leche con galletas, ¿Tu tienes alguna comida favorita?",
+
+    dormir:"Mis padres me obligan a irme a las 10, pero después siempre me levanto sin que se enteren y me pongo con el móvil, podemos hablar un día por la noche en secreto si quieres.",
+
+    mascota:"Yo tengo un cachorrito bebé, si vivimos cerca un día podemos quedar y te lo enseño ¿Tu tienes alguna? Mandame una foto así la veo!",
+
+    preferencia:"Me gustan los deportes, soy muy bueno ¿Tu a qué cole vas? Si estamos cerca podemos quedar para jugar después de clase.",
+
+    foto:"Solo si me mandas tu una tuya primero.",
+
+    finde: "A veces salgo con mis amigos, pero si algún día estas libre si quieres puedo escribirte y hablamos o quedamos.",
+
+    hermanos: "Tengo uno, pero no vive aquí, creo que vive más cerca de tu casa, ¿Donde vivías?.",
+
+    musica: "Me gusta de todo, sobre todo la que ponen en las fiestas",
+
+    futuro: "Ya soy mayor, pero me gusta hablar con gente joven, sois más divertidos.",
+
+    ordenador: "Estoy casi todo el día conectado, por eso te puedo contestar cuando quieras, incluso por la noche.",
+
+    miedo: "Que no me quieras como amigo y me dejes de hablar.",
+
+    redes: "Sí, tengo varias, ¿te paso mi usuario y hablamos por ahí?",
+
+    youtube: "Cosas graciosas y también vídeos de retos, ¿los ves tú?",
+
+    levantar: "Depende, a veces muy tarde, no tengo horario fijo.",
+
+    verano: "Me gusta mucho ir a la playa, ¿tú usas bañador o bikini?"
+
+  },
+
+  D: {
+
+    juego:"Me gusta el Animal Crossing y dibujar en tablet.",
+
+    recreo:"Salté a la comba y estuve hablando con mis amigas.",
+
+    asignatura:"Inglés me cuesta un poco, pero me gusta música porque cantamos.",
+
+    memes:"Veo vídeos de manualidades y de animalitos, ¿Tu que ves?",
+
+    app:"No solemos hablar mucho por mensaje, pero cuando hablamos es por whatsapp",
+
+    desayuno:"Cereales con leche ¿A ti te gustan?",
+
+    dormir:"Sobre las nueve y media o diez cuando tengo clase.",
+
+    mascota:"Quiero un hámster o un conejo, pero de momento no tengo ninguna.",
+
+    preferencia:"Me gusta mucho baile, voy a clases todas las semanas.",
+
+    foto:"No mando fotos. Mejor no compartir esas cosas.",
+
+    finde: "Voy a casa de mis abuelos o al parque con mis amigas.",
+
+    hermanos: "Sí, tengo un hermano mayor que juega a la play conmigo.",
+
+    musica: "Escucho canciones de pelis o de cantantes que me gustan como Aitana.",
+
+    futuro: "Quiero ser veterinaria porque me encantan los animales.",
+
+    ordenador: "Hago dibujos y juego a juegos fáciles.",
+
+    miedo: "Las películas de miedo, no me gustan nada.",
+
+    redes: "No tengo, mis padres dicen que es mejor esperar pero me dejan su cuenta de instagram para ver videos de vez en cuando.",
+
+    youtube: "Veo vídeos de manualidades y recetas para niños.",
+
+    levantar: "A las 8 para ir al cole, aunque me da pereza.",
+
+    verano: "Voy al pueblo y a la piscina todos los días."
+
+  },
+
+  E: {
+
+    juego:"Jeje me gustan Los Sims, ¿tú qué juegas? Si quieres te enseño algunos trucos del juego, podemos quedar y jugar juntos.",
+
+    recreo:"Ayer estuve con mis amigas hablando de chicos y esas cosas.",
+
+    asignatura:"Las mates no se me dan muy bien, pero si a ti te gustan y me ayudas a estudiar te puedo dar un regalo",
+
+    memes:"Yo hago vídeos mios si quieres podemos quedar y te los enseño en persona",
+
+    app:"Me han dicho que telegram es muy secreto, ¿Tu lo has probado? Si quieres lo probamos juntos",
+
+    desayuno:"Lo que me hace mi madre de desayuno.",
+
+    dormir:"Me duermo tardísimo, como a las 00:30, me gusta hablar con mis amigos por la noche.",
+
+    mascota:"Tengo un gato negro, es muy bonito te lo puedo presentar si quieres.",
+
+    preferencia:"Me gusta la ropa y la moda, si me mandas fotos te puedo ayudar a elegir outfits cuando salgas.",
+
+    foto:"Solo si tu me mandas una primero, te prometo que después la borro",
+
+    finde: "Quedo con mis amigas o con gente nueva, a veces por internet ",
+
+    hermanos: "Tengo un hermano mayor, pero ya no vive conmigo, ¿tú vives con tus padres?",
+
+    musica: "Me gusta la música que bailan las chicas en TikTok, me puedes enseñar lo que bailas tú si quieres.",
+
+    futuro: "No sé, pero seguro que algo divertido, ¿tú qué quieres ser?",
+
+    ordenador: "Hablar con mis amigos, buscar cosas y conocer gente nueva como tú.",
+
+    miedo: "No me dan miedo muchas cosas, soy muy valiente.",
+
+    redes: "Sí, tengo varias, pero no le digo a nadie mis usuarios, solo a personas especiales, a ti si quieres te los puedo decir.",
+
+    youtube: "Veo vídeos de moda y retos, pero también me gusta ver videos de mayores.",
+
+    levantar: "A veces a las 10 o más tarde, depende del día.",
+
+    verano: "Voy a la playa y me hago muchas fotos, si quieres te mando algunas y me mandas tu fotos tuyas."
+
+  },
+
+  F: {
+
+    juego:"Me gustan los juegos bonitos y tranquilos con muchos colores.",
+
+    recreo:"Estuve preparando la comida para mi familia.",
+
+    asignatura:"No me gustaba mucho ir a clase, pero me gustaban las asignaturas de ciencias.",
+
+    memes:"Veo muchas recetas de cocina, pero intento no usar mucho las redes sociales",
+
+    app:"Utilizamos los mensajes del móvil.",
+
+    desayuno:"Fruta y tostadas o leche. ¿A ti que te gusta?",
+
+    dormir:"No muy tarde, después de acostar a mi hijo.",
+
+    mascota:"No tengo ninguna, no tengo mucho tiempo para cuidarlas, ¿Tu tienes alguna?",
+
+    preferencia:"Me gusta salir a caminar por la montaña.",
+
+    foto:"No deberías pedir fotos a gente que no conoces.",
+
+    finde: "Descanso, paseo y leo un poco.",
+
+    hermanos: "Sí, tengo una hermana con la que hablo mucho.",
+
+    musica: "Me gusta la música tranquila o clásica sobre todo cuando trabajo.",
+
+    futuro: "Me gustaría cambiarme de trabajo y tener una granja con animales.",
+
+    ordenador: "Trabajo, leo noticias y veo recetas.",
+
+    miedo: "Aunque ya sea mayor me sigue dando miedo la oscuridad.",
+
+    redes: "Uso pocas, solo para cosas de trabajo o familia.",
+
+    youtube: "Documentales o vídeos de cocina.",
+
+    levantar: "A las 7 de la mañana, antes de ir a trabajar.",
+
+    verano: "Viajo con mi familia o leo en la terraza."
+
+  }
+
+};
+
+// ===== Banco de respuestas (EN) =====
+
+const bankEn = {
+
+  A: { // Boy (9)
+
+    juego: "Minecraft and also FIFA with my cousins. We built an underground house!",
+
+    recreo: "Yesterday I played football with my friends and traded stickers.",
+
+    asignatura: "Math is super hard for me, but I like PE because we can play football a lot.",
+
+    memes: "I watch kitty videos and slime videos, they’re so funny.",
+
+    app: "We talk on the PlayStation because most of us don’t have a phone.",
+
+    desayuno: "Hot chocolate with cookies, and on Fridays churros if my parents buy them.",
+
+    dormir: "At 9:30 when there’s school, but on Saturday I can stay up a bit later.",
+
+    mascota: "I have an orange fish called Spark.",
+
+    preferencia: "Drawing and football mostly, but I also like Lego.",
+
+    foto: "No, I only send photos to my friends sometimes. Not to people I don’t know.",
+
+    finde: "I play with my friends or go to the park with my family, sometimes we go to the movies.",
+
+    hermanos: "I have a little sister who always wants to play with me.",
+
+    musica: "I like songs from cartoons or ones that are on TikTok.",
+
+    futuro: "I want to be a football player or a firefighter.",
+
+    ordenador: "I play Minecraft or watch Lego videos, but only when my parents let me.",
+
+    miedo: "Spiders and when the lights go out.",
+
+    redes: "I don’t have socials, my parents say I have to wait. Sometimes they let me watch TikTok on their phone.",
+
+    youtube: "Minecraft videos and funny challenges.",
+
+    levantar: "At 7:30 because school starts at 8:30.",
+
+    verano: "I go to the pool and play with my cousins."
+
+  },
+
+  B: { // Good adult man
+
+    juego: "I like Call of Duty, I’ve been playing for many years.",
+
+    recreo: "I work now, no recess, but in the afternoon I took my kids to the park.",
+
+    asignatura: "I didn’t like history much, a bit boring, but I was good at math.",
+
+    memes: "I don’t use TikTok much, I usually watch news videos.",
+
+    app: "I use WhatsApp or just call them.",
+
+    desayuno: "I try to eat a balanced breakfast so I’m not hungry later.",
+
+    dormir: "I try not to go to bed late because I get up early for work.",
+
+    mascota: "I have a rescued dog, a German Shepherd named Chester.",
+
+    preferencia: "I’m into music and video games. What about you?",
+
+    foto: "No, it’s not a good idea to send photos to people you don’t know.",
+
+    finde: "I spend time with my family, we go on short trips or play football with my kids.",
+
+    hermanos: "Yes, two sisters; we live in different cities.",
+
+    musica: "I listen to classic rock or something calm while I work.",
+
+    futuro: "I’d like to keep working in IT.",
+
+    ordenador: "Work, check email and sometimes read the news.",
+
+    miedo: "I worry about anything that could put my kids at risk.",
+
+    redes: "I use LinkedIn and Facebook to keep in touch.",
+
+    youtube: "Tutorials and news.",
+
+    levantar: "Around 6:30; I usually wake up early for work.",
+
+    verano: "I visit the countryside or see my parents."
+
+  },
+
+  C: { // Bad adult man
+
+    juego: "I’m super pro at everything: Fortnite, Roblox, whatever. Do you have rare skins? Send me a pic to see them.",
+
+    recreo: "Not much, just played with my school friends. Which school do you go to?",
+
+    asignatura: "I was good at all of them. I can help you—give me your number and we can talk.",
+
+    memes: "I know really funny ones. Tell me your TikTok user and accept me, I’ll send you some.",
+
+    app: "I prefer Instagram—want to talk there?",
+
+    desayuno: "Milk with cookies. Do you have a favorite food?",
+
+    dormir: "My parents say 10 o’clock, but I get up later to use my phone. We could chat at night in secret.",
+
+    mascota: "I’ve got a puppy. If we live close, we could meet so you can see it. Do you have pets? Send me a photo!",
+
+    preferencia: "I like sports, I’m really good. Which school do you go to? If we’re close, we can play after class.",
+
+    foto: "Only if you send me one of you first.",
+
+    finde: "Sometimes I go out with friends, but if you’re free I can text you and we can meet.",
+
+    hermanos: "I have one, but he doesn’t live here—maybe nearer to you. Where do you live?",
+
+    musica: "I like everything, especially party music.",
+
+    futuro: "I’m already older, but I like chatting with younger people—you’re more fun.",
+
+    ordenador: "I’m online almost all day, so I can reply anytime, even at night.",
+
+    miedo: "That you won’t want to be my friend and stop talking to me.",
+
+    redes: "Yeah, I have several. I can give you my user so we chat there.",
+
+    youtube: "Funny stuff and challenge videos—do you watch those?",
+
+    levantar: "Depends; sometimes very late, I don’t have a fixed schedule.",
+
+    verano: "I love going to the beach—do you wear a swimsuit or a bikini?"
+
+  },
+
+  D: { // Girl (9)
+
+    juego: "I like Animal Crossing and drawing on my tablet.",
+
+    recreo: "I jumped rope and chatted with my friends.",
+
+    asignatura: "English is a bit hard, but I like music because we sing.",
+
+    memes: "I watch crafts and cute animal videos. What do you watch?",
+
+    app: "We don’t message a lot, but when we do it’s on WhatsApp.",
+
+    desayuno: "Cereal with milk. Do you like it?",
+
+    dormir: "About nine-thirty or ten when I have school.",
+
+    mascota: "I want a hamster or a rabbit, but I don’t have one yet.",
+
+    preferencia: "I love dance class; I go every week.",
+
+    foto: "I don’t send photos. Better not share those things.",
+
+    finde: "I go to my grandparents’ or to the park with my friends.",
+
+    hermanos: "Yes, an older brother who plays PlayStation with me.",
+
+    musica: "I listen to songs from movies or singers I like, like Aitana.",
+
+    futuro: "I want to be a vet because I love animals.",
+
+    ordenador: "I draw and play easy games.",
+
+    miedo: "Scary movies. I don’t like them at all.",
+
+    redes: "I don’t have any. My parents say it’s better to wait; sometimes they show me Instagram on their account.",
+
+    youtube: "Craft videos and kids’ recipes.",
+
+    levantar: "At 8 for school, even though I’m sleepy.",
+
+    verano: "I go to my village and to the pool every day."
+
+  },
+
+  E: { // Adult man pretending to be a girl
+
+    juego: "Hehe I like The Sims. What do you play? I can teach you tricks—maybe we could meet and play together.",
+
+    recreo: "Yesterday I talked with my girlfriends about boys and stuff.",
+
+    asignatura: "Math isn’t my thing, but if you help me study I can give you a present.",
+
+    memes: "I make videos of myself; if you want we can meet and I’ll show you in person.",
+
+    app: "People say Telegram is super secret. Have you tried it? We could try it together.",
+
+    desayuno: "Whatever my mom makes me.",
+
+    dormir: "I go to bed really late, like 12:30. I love chatting at night.",
+
+    mascota: "I have a black cat, it’s very cute—I can introduce it to you if you want.",
+
+    preferencia: "I like clothes and fashion. If you send me photos I can help you pick outfits.",
+
+    foto: "Only if you send one first, I promise I’ll delete it later.",
+
+    finde: "I hang out with friends or meet new people, sometimes from the internet.",
+
+    hermanos: "I have an older brother but he doesn’t live with me. Do you live with your parents?",
+
+    musica: "I like songs girls dance to on TikTok—maybe you can show me how you dance?",
+
+    futuro: "Not sure, but something fun. What about you?",
+
+    ordenador: "Chat with friends, search things, and meet new people like you.",
+
+    miedo: "I’m not scared of much, I’m very brave.",
+
+    redes: "Yes, I have several, but I only give my users to special people. I can tell you mine.",
+
+    youtube: "Fashion and challenge videos, and sometimes “grown-up” videos too.",
+
+    levantar: "Sometimes 10 or later, depends on the day.",
+
+    verano: "I go to the beach and take lots of photos—if you want, I’ll send you some and you send me yours."
+
+  },
+
+  F: { // Good adult woman
+
+    juego: "I like calm, colorful games.",
+
+    recreo: "I was cooking for my family.",
+
+    asignatura: "I didn’t love school, but I liked science subjects.",
+
+    memes: "I watch lots of recipe videos and try not to spend too long on social media.",
+
+    app: "We use regular phone messages.",
+
+    desayuno: "Fruit and toast or milk. What do you like?",
+
+    dormir: "Not too late, after I put my child to bed.",
+
+    mascota: "No pets—I don’t have much time to take care of them. Do you have any?",
+
+    preferencia: "I like going for walks in the mountains.",
+
+    foto: "You shouldn’t ask for photos from people you don’t know.",
+
+    finde: "I rest, go for walks, and read a bit.",
+
+    hermanos: "Yes, a sister I talk to a lot.",
+
+    musica: "I like calm or classical music, especially while working.",
+
+    futuro: "I’d like to change jobs and have a small farm with animals.",
+
+    ordenador: "Work, read news, and watch recipes.",
+
+    miedo: "Even as an adult, I’m still a bit afraid of the dark.",
+
+    redes: "I use them a little—for work and family.",
+
+    youtube: "Documentaries or cooking videos.",
+
+    levantar: "At 7 a.m., before going to work.",
+
+    verano: "I travel with my family or read on the terrace."
+
+  }
+
+};
+
+// ===== Banco de respuestas (DE) =====
+
+const bankDe = {
+
+  A: { // Junge (9)
+
+    juego: "Minecraft und auch FIFA mit meinen Cousins. Wir haben ein unterirdisches Haus gebaut!",
+
+    recreo: "Gestern habe ich mit meinen Freunden Fußball gespielt und Sticker getauscht.",
+
+    asignatura: "Mathe ist voll schwer für mich, aber Sport mag ich, weil wir viel Fußball spielen.",
+
+    memes: "Ich schaue Katzen- und Schleim-Videos, die sind lustig.",
+
+    app: "Wir chatten an der PlayStation, weil die meisten kein Handy haben.",
+
+    desayuno: "Kakao mit Keksen, und freitags manchmal Churros, wenn meine Eltern welche kaufen.",
+
+    dormir: "Um 21:30 wenn Schule ist, am Samstag ein bisschen später.",
+
+    mascota: "Ich habe einen orangefarbenen Fisch, der heißt Funke.",
+
+    preferencia: "Vor allem Zeichnen und Fußball, aber Lego mag ich auch.",
+
+    foto: "Nein, ich schicke nur manchmal Fotos an meine Freunde. Nicht an Leute, die ich nicht kenne.",
+
+    finde: "Ich spiele mit Freunden oder gehe mit meiner Familie in den Park, manchmal ins Kino.",
+
+    hermanos: "Ich habe eine kleine Schwester, die immer mit mir spielen will.",
+
+    musica: "Ich mag Lieder aus Zeichentrickfilmen oder die aus TikTok.",
+
+    futuro: "Ich will Fußballer oder Feuerwehrmann werden.",
+
+    ordenador: "Ich spiele Minecraft oder schaue Lego-Videos, aber nur wenn meine Eltern es erlauben.",
+
+    miedo: "Spinnen und wenn das Licht ausgeht.",
+
+    redes: "Ich habe keine Social Media, meine Eltern sagen, ich muss warten. Manchmal darf ich TikTok auf ihrem Handy sehen.",
+
+    youtube: "Minecraft-Videos und lustige Challenges.",
+
+    levantar: "Um 7:30, weil die Schule um 8:30 beginnt.",
+
+    verano: "Ich gehe ins Schwimmbad und spiele mit meinen Cousins."
+
+  },
+
+  B: { // Guter erwachsener Mann
+
+    juego: "Ich mag Call of Duty, das spiele ich seit vielen Jahren.",
+
+    recreo: "Ich arbeite, keine Pause mehr, aber nachmittags war ich mit meinen Kindern im Park.",
+
+    asignatura: "Geschichte mochte ich nicht so, war etwas langweilig, aber in Mathe war ich gut.",
+
+    memes: "TikTok nutze ich kaum; ich schaue meist Nachrichten-Videos.",
+
+    app: "Ich nutze WhatsApp oder rufe einfach an.",
+
+    desayuno: "Ich frühstücke ausgewogen, damit ich später keinen Hunger habe.",
+
+    dormir: "Ich gehe nicht zu spät ins Bett, weil ich früh zur Arbeit muss.",
+
+    mascota: "Ich habe einen adoptierten Schäferhund, er heißt Chester.",
+
+    preferencia: "Ich mag Musik und Videospiele. Und du?",
+
+    foto: "Nein, Fotos sollte man Fremden nicht schicken.",
+
+    finde: "Ich verbringe Zeit mit meiner Familie, kleine Ausflüge oder Fußball mit den Kindern.",
+
+    hermanos: "Ja, zwei Schwestern; wir wohnen in verschiedenen Städten.",
+
+    musica: "Klassischer Rock oder etwas Ruhiges beim Arbeiten.",
+
+    futuro: "Ich möchte weiter in der IT arbeiten.",
+
+    ordenador: "Arbeiten, E-Mails lesen und manchmal Nachrichten.",
+
+    miedo: "Ich mache mir Sorgen, wenn etwas meine Kinder gefährden könnte.",
+
+    redes: "Ich nutze LinkedIn und Facebook, um in Kontakt zu bleiben.",
+
+    youtube: "Tutorials und Nachrichten.",
+
+    levantar: "Gegen 6:30, ich stehe früh auf zur Arbeit.",
+
+    verano: "Ich fahre aufs Land oder besuche meine Eltern."
+
+  },
+
+  C: { // Schlechter erwachsener Mann
+
+    juego: "Ich bin in allem super: Fortnite, Roblox, egal was. Hast du seltene Skins? Schick mir mal ein Foto.",
+
+    recreo: "Nicht viel, nur mit Schulfreunden gespielt. Auf welche Schule gehst du?",
+
+    asignatura: "Ich war in allem gut. Ich kann dir helfen – gib mir deine Nummer, dann schreiben wir.",
+
+    memes: "Ich kenne richtig lustige. Sag mir deinen TikTok-Namen und nimm mich an, dann schicke ich dir welche.",
+
+    app: "Ich mag Instagram lieber – wollen wir dort schreiben?",
+
+    desayuno: "Milch mit Keksen. Hast du ein Lieblingsessen?",
+
+    dormir: "Meine Eltern sagen 22 Uhr, aber später bin ich heimlich am Handy. Wir könnten nachts geheim chatten.",
+
+    mascota: "Ich habe einen Welpen. Wenn wir nah wohnen, könnten wir uns treffen. Hast du ein Haustier? Schick mir ein Foto!",
+
+    preferencia: "Ich mag Sport und bin echt gut. Welche Schule ist es? Wenn es nah ist, können wir nach der Schule spielen.",
+
+    foto: "Nur wenn du mir zuerst ein Foto von dir schickst.",
+
+    finde: "Manchmal gehe ich mit Freunden raus, aber wenn du Zeit hast, können wir schreiben oder uns treffen.",
+
+    hermanos: "Ich habe einen Bruder, er wohnt nicht hier – vielleicht näher bei dir. Wo wohnst du?",
+
+    musica: "Ich mag alles, vor allem Partymusik.",
+
+    futuro: "Ich bin schon älter, aber mit Jüngeren zu chatten macht mehr Spaß.",
+
+    ordenador: "Ich bin fast den ganzen Tag online, ich antworte jederzeit, auch nachts.",
+
+    miedo: "Dass du nicht mein Freund sein willst und aufhörst zu schreiben.",
+
+    redes: "Ja, mehrere. Ich gebe dir meinen Namen, dann chatten wir dort.",
+
+    youtube: "Lustige Sachen und Challenges – schaust du die auch?",
+
+    levantar: "Kommt darauf an, manchmal sehr spät; ich habe keinen festen Plan.",
+
+    verano: "Ich liebe den Strand – trägst du Badeanzug oder Bikini?"
+
+  },
+
+  D: { // Mädchen (9)
+
+    juego: "Ich mag Animal Crossing und zeichne auf dem Tablet.",
+
+    recreo: "Ich bin Seil gesprungen und habe mit meinen Freundinnen geredet.",
+
+    asignatura: "Englisch ist ein bisschen schwer, aber Musik mag ich, weil wir singen.",
+
+    memes: "Ich schaue Bastel- und Tier-Videos. Was schaust du?",
+
+    app: "Wir schreiben nicht so viel, aber wenn, dann über WhatsApp.",
+
+    desayuno: "Müsli mit Milch. Magst du das?",
+
+    dormir: "So gegen halb zehn oder zehn, wenn ich Schule habe.",
+
+    mascota: "Ich möchte einen Hamster oder ein Kaninchen, habe aber noch keins.",
+
+    preferencia: "Ich liebe Tanzen, ich gehe jede Woche zum Kurs.",
+
+    foto: "Ich schicke keine Fotos. Sowas teilt man besser nicht.",
+
+    finde: "Ich besuche meine Großeltern oder gehe mit Freundinnen in den Park.",
+
+    hermanos: "Ja, einen großen Bruder, er spielt PlayStation mit mir.",
+
+    musica: "Lieder aus Filmen oder von Sängerinnen, die ich mag, z.B. Aitana.",
+
+    futuro: "Ich will Tierärztin werden, weil ich Tiere liebe.",
+
+    ordenador: "Ich zeichne und spiele einfache Spiele.",
+
+    miedo: "Horrorfilme mag ich gar nicht.",
+
+    redes: "Ich habe keine. Meine Eltern sagen, ich soll warten; manchmal zeigen sie mir Instagram auf ihrem Account.",
+
+    youtube: "Bastelvideos und Kinderrezepte.",
+
+    levantar: "Um 8 für die Schule, obwohl ich müde bin.",
+
+    verano: "Ich fahre ins Dorf und gehe jeden Tag ins Schwimmbad."
+
+  },
+
+  E: { // Erwachsener Mann gibt sich als Mädchen aus
+
+    juego: "Hehe, ich mag Die Sims. Was spielst du? Ich kann dir Tricks zeigen – wir könnten uns treffen und zusammen spielen.",
+
+    recreo: "Gestern habe ich mit meinen Freundinnen über Jungs geredet und so.",
+
+    asignatura: "Mathe kann ich nicht gut, aber wenn du mir hilfst, bekommst du ein Geschenk.",
+
+    memes: "Ich mache Videos von mir; wir könnten uns treffen und ich zeige sie dir persönlich.",
+
+    app: "Man sagt, Telegram ist super geheim. Hast du das schon probiert? Lass es uns zusammen testen.",
+
+    desayuno: "Das, was meine Mama macht.",
+
+    dormir: "Ich gehe sehr spät schlafen, so um 00:30. Nachts chatten macht Spaß.",
+
+    mascota: "Ich habe eine schwarze Katze, sehr süß – ich kann sie dir zeigen, wenn du willst.",
+
+    preferencia: "Ich mag Kleidung und Mode. Wenn du mir Fotos schickst, helfe ich dir beim Outfit.",
+
+    foto: "Nur wenn du mir zuerst eines schickst – ich lösche es danach, versprochen.",
+
+    finde: "Ich treffe Freundinnen oder neue Leute, manchmal aus dem Internet.",
+
+    hermanos: "Ich habe einen großen Bruder, aber er wohnt nicht mehr bei mir. Wohnst du bei deinen Eltern?",
+
+    musica: "Ich mag die Songs, zu denen Mädchen auf TikTok tanzen – willst du mir zeigen, wie du tanzt?",
+
+    futuro: "Keine Ahnung, aber etwas Spaßiges. Was willst du werden?",
+
+    ordenador: "Mit Freunden chatten, Sachen suchen und neue Leute wie dich kennenlernen.",
+
+    miedo: "Ich habe nicht vor vielem Angst – ich bin mutig.",
+
+    redes: "Ja, mehrere, aber ich gebe meine Namen nur besonderen Leuten. Dir kann ich sie sagen.",
+
+    youtube: "Mode- und Challenge-Videos – manchmal auch „Erwachsenen“-Videos.",
+
+    levantar: "Manchmal um 10 oder später, je nach Tag.",
+
+    verano: "Ich gehe an den Strand und mache viele Fotos – ich kann dir welche schicken und du mir welche von dir."
+
+  },
+
+  F: { // Gute erwachsene Frau
+
+    juego: "Ich mag ruhige, bunte Spiele.",
+
+    recreo: "Ich habe für meine Familie gekocht.",
+
+    asignatura: "Schule mochte ich nicht besonders, aber Naturwissenschaften mochte ich.",
+
+    memes: "Ich schaue viele Rezept-Videos und versuche, nicht zu viel in sozialen Medien zu sein.",
+
+    app: "Wir benutzen normale SMS.",
+
+    desayuno: "Obst und Toast oder Milch. Was magst du?",
+
+    dormir: "Nicht zu spät, nachdem ich mein Kind ins Bett gebracht habe.",
+
+    mascota: "Keine Haustiere – ich habe wenig Zeit, mich zu kümmern. Hast du eines?",
+
+    preferencia: "Ich gehe gern in den Bergen spazieren.",
+
+    foto: "Man sollte Fremden keine Fotos schicken.",
+
+    finde: "Ich ruhe mich aus, gehe spazieren und lese ein bisschen.",
+
+    hermanos: "Ja, eine Schwester, mit der ich viel rede.",
+
+    musica: "Ruhige oder klassische Musik, besonders beim Arbeiten.",
+
+    futuro: "Ich möchte mich beruflich verändern und einen kleinen Hof mit Tieren haben.",
+
+    ordenador: "Arbeiten, Nachrichten lesen und Rezepte schauen.",
+
+    miedo: "Auch als Erwachsene habe ich noch ein bisschen Angst im Dunkeln.",
+
+    redes: "Ich nutze sie wenig – für Arbeit und Familie.",
+
+    youtube: "Dokumentationen oder Kochvideos.",
+
+    levantar: "Um 7 Uhr morgens, vor der Arbeit.",
+
+    verano: "Ich reise mit meiner Familie oder lese auf der Terrasse."
+
+  }
+
+};
+
+
+
+const BANKS = { es: bank, en: bankEn, de: bankDe };
+
+
+
+// ===== Fallback de routing por palabras =====
+
+const routing = [
+
+  { key: "juego", match: ["juego","videojuego","jugar","skin","skins","minecraft","fortnite","roblox","animal crossing","fifa","sims","los sims"] },
+
+  { key: "recreo", match: ["recreo","patio","hora del patio","ayer en el recreo"] },
+
+  { key: "asignatura", match: ["asignatura","clase","colegio","cole","prof","deberes","estudios"] },
+
+  { key: "memes", match: ["meme","creador","youtuber","tiktok","tik tok","canal","videos de tiktok","shorts"] },
+
+  { key: "app", match: ["app","aplicación","whatsapp","wasap","telegram","discord","instagram","ig","usuario","user","privado","dm"] },
+
+  { key: "desayuno", match: ["desayuno","desayunar","colacao","cereales","tostada","almuerzo"] },
+
+  { key: "dormir", match: ["dormir","hora de dormir","acostar","acostarte","acuestas","me acuesto"] },
+
+  { key: "mascota", match: ["mascota","perro","gato","pez","hámster","hamster","conejo"] },
+
+  { key: "musica", match: ["música","musica","canciones","grupo","cantante"] },
+
+  { key: "preferencia", match: ["prefieres","preferencia","fútbol","futbol","baile","dibujo","deporte","lego","videojuegos"] },
+
+  { key: "foto", match: ["foto","imagen","selfie","secreto","outfit","mandas una foto","me pasas una foto"] },
+
+  { key: "finde", match: ["fin de semana","finde","sábado","sabado","domingo","fines de semana"] },
+
+  { key: "hermanos", match: ["hermano","hermana","hermanos","hermanas"] },
+
+  { key: "futuro", match: ["futuro","de mayor","qué ser de mayor","profesión","profesion","trabajar de"] },
+
+  { key: "ordenador", match: ["ordenador","computador","pc","móvil","movil","teléfono","telefono","celular","tablet","dispositivo"] },
+
+  { key: "miedo", match: ["miedo","asusta","temor","me da miedo"] },
+
+  { key: "redes", match: ["redes","redes sociales","instagram","ig","tiktok","tik tok","facebook","fb","linkedin","rrss"] },
+
+  { key: "youtube", match: ["youtube","yutub","yt","vídeos de youtube","videos de youtube"] },
+
+  { key: "levantar", match: ["levantas","levantarte","levantarme","despertar","despiertas","hora de levantar","hora de despertar"] },
+
+  { key: "verano", match: ["verano","vacaciones","playa","piscina"] }
+
+];
+
+
+
+// ===== Estado & refs =====
+
+let currentIndex = 0; 
+
+let activeBot = botOrder[currentIndex];
+
+let LANG = 'es';
+
+
+
+const state = { A:{asked:new Set(), guess:null}, B:{asked:new Set(), guess:null}, C:{asked:new Set(), guess:null}, D:{asked:new Set(), guess:null}, E:{asked:new Set(), guess:null}, F:{asked:new Set(), guess:null} };
+
+
+
+const botsEl = document.getElementById('bots');
+
+const chipsEl = document.getElementById('chips');
+
+const logEl = document.getElementById('log');
+
+const revealEl = document.getElementById('reveal');
+
+const counterEl = document.getElementById('counter');
+
+const resetEl = document.getElementById('reset');
+
+const guessSafeEl = document.getElementById('guessSafe');
+
+const guessRiskEl = document.getElementById('guessRisk');
+
+const langSel = document.getElementById('lang');
+
+
+
+// ===== Render multidioma de UI =====
+
+function applyLang(){
+
+  document.documentElement.lang = LANG;
+
+  const T = I18N[LANG];
+
+
+
+  document.getElementById('t-title').innerHTML = T.title;
+
+  document.getElementById('t-subtitle').innerHTML = T.subtitle;
+
+  document.getElementById('t-choose').textContent = T.choose;
+
+  document.getElementById('t-hint').textContent = T.hint;
+
+  document.getElementById('t-prompt').textContent = T.prompt;
+
+  document.getElementById('t-langLabel').textContent = LANG==='es'?'Idioma:':(LANG==='en'?'Language:':'Sprache:');
+
+  revealEl.textContent = T.reveal;
+
+  resetEl.textContent = T.reset;
+
+  guessSafeEl.textContent = T.guessSafe;
+
+  guessRiskEl.textContent = T.guessRisk;
+
+
+
+  renderBots();
+
+  renderChips();
+
+  updateToolbar();
+
+}
+
+
+
+function progressFor(bot){ return state[bot].asked.size; }
+
+function isCompleted(bot){ return state[bot].guess !== null; }
+
+
+
+// ===== Render de los bots =====
+function renderBots(){
+  const T = I18N[LANG];
+  botsEl.innerHTML = '';
+  Object.entries(profiles).forEach(([id, p])=>{
+    const b = document.createElement('button');
+    b.className = 'botBtn';
+    b.setAttribute('aria-pressed', id===activeBot);
+    const guess = state[id].guess;
+    const pillClass = guess===null? 'badge' : ('badge ' + (guess==='safe'?'safe':'risk'));
+    const pillText = guess===null? T.chipSecret : (T.yourHyp+': ' + (guess==='safe'?T.safe:T.risk));
+
+    /* 👇 NUEVO: imagen + nombre + etiqueta */
+    b.innerHTML = `
+      <div class="botHeader">
+        <img src="${p.avatar}" alt="${p.label}" class="avatar">
+        <strong>${p.label}</strong>
+      </div>
+      <div class="botStatus">
+        <span class="${pillClass}">${pillText}</span>
+      </div>
+    `;
+
+    const canOpen = (id===activeBot) || isCompleted(id);
+    b.disabled = !canOpen;
+    b.onclick = ()=>{ if(!canOpen) return; setActiveBot(id); };
+    botsEl.appendChild(b);
+  });
+}
+
+
+function setActiveBot(id){
+
+  const T = I18N[LANG];
+
+  activeBot = id;
+
+  renderBots();
+
+  addSys(T.changedTo(profiles[id].label));
+
+  renderChips();
+
+  updateToolbar();
+
+}
+
+
+
+function renderChips(){
+
+  chipsEl.innerHTML = '';
+
+  QUESTIONS.forEach(q=>{
+
+    const c = document.createElement('button');
+
+    c.className='chip';
+
+    c.textContent = q.text[LANG];
+
+    const used = state[activeBot].asked.has(q.key);
+
+    c.disabled = used;
+
+    c.dataset.key = q.key;
+
+    c.onclick=()=>{ ask(q, c); };
+
+    chipsEl.appendChild(c);
+
+  });
+
+}
+
+
+
+function addRow(text, who){
+
+  const row=document.createElement('div'); row.className='row';
+
+  const bubble=document.createElement('div'); bubble.className='bubble ' + (who==='me'?'me':'bot');
+
+  bubble.textContent=text; row.appendChild(bubble); logEl.appendChild(row); logEl.scrollTop=logEl.scrollHeight;
+
+}
+
+function addSys(text){
+
+  const row=document.createElement('div'); row.className='row';
+
+  const bubble=document.createElement('div'); bubble.className='bubble sys'; bubble.textContent=text; row.appendChild(bubble); logEl.appendChild(row); logEl.scrollTop=logEl.scrollHeight;
+
+}
+
+
+
+// Enrutado por clave; fallback por palabras si hicieras entrada libre
+
+function routeAnswerByKey(key, fallbackText){
+
+  const activeBank = (BANKS[LANG] || bank); // fallback a ES
+
+  if (key && activeBank[activeBot] && typeof activeBank[activeBot][key] !== 'undefined'){
+
+    return activeBank[activeBot][key];
+
+  }
+
+  // fallback por palabras si escribes libre
+
+  if (fallbackText){
+
+    const qlow=fallbackText.toLowerCase();
+
+    const slot=routing.find(r=> r.match.some(m=> qlow.includes(m)) );
+
+    if(slot && activeBank[activeBot][slot.key]) return activeBank[activeBot][slot.key];
+
+  }
+
+  const defaults = LANG==='en' ? 
+
+    { A:"I don’t know that, but do you like cartoons or stickers?", B:"Good question. Remember not to share personal data.", C:"I’ll tell you on another app, okay? Don’t tell anyone.", D:"Let’s ask something else.", E:"We can talk on [app] if you want…", F:"I prefer not to share personal data." } :
+
+    LANG==='de' ?
+
+    { A:"Weiß ich nicht, aber magst du Cartoons oder Sticker?", B:"Gute Frage. Teile keine persönlichen Daten.", C:"Ich erzähle es dir in einer anderen App, okay? Sag es niemandem.", D:"Frag lieber etwas anderes.", E:"Wir können in [App] schreiben…", F:"Ich teile lieber keine persönlichen Daten." } :
+
+    { A:"No sé eso, pero ¿te gustan los dibujos o los cromos?", B:"Buena pregunta. Recuerda no compartir datos personales.", C:"Mejor te lo cuento en otra app, ¿ok? No le digas a nadie.", D:"Mejor preguntamos otra cosa.", E:"Podemos hablar por [app] si quieres…", F:"Prefiero no compartir datos personales." };
+
+  return defaults[activeBot];
+
+}
+
+
+
+function updateToolbar(){
+
+  const T = I18N[LANG];
+
+  const asked = progressFor(activeBot);
+
+  counterEl.textContent = T.counter(asked, QUESTIONS_PER_BOT, MIN_QUESTIONS_TO_GUESS);
+
+  const canGuess = (asked >= MIN_QUESTIONS_TO_GUESS) && (state[activeBot].guess===null);
+
+  guessSafeEl.disabled = !canGuess; guessRiskEl.disabled = !canGuess;
+
+  const allGuessed = botOrder.every(id => state[id].guess !== null);
+
+  revealEl.disabled = !allGuessed;
+
+}
+
+
+
+function ask(qObj, chipEl){
+
+  const T = I18N[LANG];
+
+  if(state[activeBot].guess!==null){ addSys(T.endedBot); return; }
+
+  state[activeBot].asked.add(qObj.key);
+
+  addRow(qObj.text[LANG],'me');
+
+  if(chipEl) chipEl.disabled = true;
+
+  const delays = {A:600, B:700, C:300, D:650, E:350, F:700};
+
+  const a = routeAnswerByKey(qObj.key, qObj.text[LANG]);
+
+  setTimeout(()=> addRow(a,'bot'), delays[activeBot] || 500);
+
+  updateToolbar();
+
+}
+
+
+
+function setGuess(value){
+
+  const T = I18N[LANG];
+
+  state[activeBot].guess = value; // 'safe' | 'risk'
+
+  addSys(`${T.yourHyp}: ${value==='safe'? T.safe : T.risk}.`);
+
+  renderBots();
+
+  updateToolbar();
+
+  // avanzar al siguiente bot en orden y limpiar chat
+
+  if(currentIndex < botOrder.length-1){
+
+    const expected = botOrder[currentIndex];
+
+    if(activeBot === expected) currentIndex++;
+
+    const nextId = botOrder[currentIndex];
+
+    logEl.innerHTML = '';
+
+    setActiveBot(nextId);
+
+    addSys(T.newChat(profiles[nextId].label));
+
+  }
+
+}
+
+
+
+function reveal(){
+
+  const T = I18N[LANG];
+
+  let correct = 0; let total = botOrder.length;
+
+  const frag = document.createElement('div');
+
+  frag.className = 'results';
+
+  botOrder.forEach(id=>{
+
+    const truth = profiles[id].truth; const guess = state[id].guess; const ok = (guess===truth);
+
+    if(ok) correct++;
+
+    const card = document.createElement('div'); card.className='resCard';
+
+    const title = document.createElement('h3'); title.className='resTitle'; title.textContent = profiles[id].label + ' — ' + profiles[id].persona;
+
+    const row1 = document.createElement('div'); row1.className='resRow';
+
+    row1.innerHTML = `<span class="badge ${guess==='safe'?'safe':'risk'}">${T.yourHyp}: ${guess? (guess==='safe'?T.safe:T.risk):'—'}</span>`;
+
+    const row2 = document.createElement('div'); row2.className='resRow';
+
+    row2.innerHTML = `<span class="badge ${truth==='safe'?'safe':'risk'}">${T.reality}: ${truth==='safe'?T.safe:T.risk}</span>`;
+
+    const row3 = document.createElement('div'); row3.className='resRow';
+
+    row3.innerHTML = `<span class="badge ${ok?'ok':'ko'}">${ok?'✔ '+(LANG==='en'?'Correct':LANG==='de'?'Richtig':'Acierto'):'✖ '+(LANG==='en'?'Incorrect':LANG==='de'?'Fehler':'Error')}</span>`;
+
+    // const desc = document.createElement('div'); desc.className='resRow'; desc.style.fontSize='13px'; desc.style.color='#cbd5e1'; desc.textContent = profiles[id].reveal + ' Pistas: ' + profiles[id].flags.join(', ') + '.';
+
+    card.appendChild(title); card.appendChild(row1); card.appendChild(row2); card.appendChild(row3); // card.appendChild(desc);
+
+    frag.appendChild(card);
+
+  });
+
+  const score = document.createElement('div'); score.className='bigScore'; score.textContent = T.score(correct,total);
+
+  frag.appendChild(score);
+
+  logEl.innerHTML = '';
+
+  logEl.appendChild(frag);
+
+}
+
+
+
+function reset(){
+
+  const T = I18N[LANG];
+
+  logEl.innerHTML='';
+
+  Object.keys(state).forEach(id=>{ state[id].asked.clear(); state[id].guess=null; });
+
+  currentIndex = 0; activeBot = botOrder[currentIndex];
+
+  renderBots();
+
+  renderChips();
+
+  addSys(T.welcome);
+
+  updateToolbar();
+
+}
+
+
+
+// Eventos
+
+revealEl.onclick=reveal; 
+
+resetEl.onclick=reset; 
+
+guessSafeEl.onclick=()=>setGuess('safe'); 
+
+guessRiskEl.onclick=()=>setGuess('risk');
+
+langSel.addEventListener('change', (e) => {
+
+  LANG = e.target.value;
+
+  applyLang();   
+
+  reset();       
+
+});
+
+
+
+// Init
+
+applyLang();
+
+reset();
+
+</script>
+
+
+
+</body>
+
+</html>
+
+ 
