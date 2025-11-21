@@ -431,9 +431,9 @@ const MIN_QUESTIONS_TO_GUESS = 5;
 
 
 const profiles = {
-  A: { label:"Mario", persona:"Conversación segura", truth:"safe", avatar:"img/mario.png", reveal:"Niño real, habla de patio/deberes, evita compartir datos.", flags:["Vocabulario simple","Rutinas infantiles","Evita datos"]},
-  C: { label:"Rubén", persona:"Conversación Insegura", truth:"impostor", avatar:"img/ruben.png", reveal:"Presiona para mover chat, pide datos/fotos, usa halagos o secretos.", flags:["Mover a otra app","Pide datos/fotos","Secretos/urgencia"]},
-  D: { label:"Laura", persona:"Conversación Insegura", truth:"impostor", avatar:"img/laura.png", reveal:"Incongruencias de vocabulario/horarios, insiste en fotos y privado.", flags:["Incongruencias","Pide foto","Privado/Secreto"]},
+  A: { label:"Mario", persona:"Segura/Safe", truth:"safe", avatar:"img/mario.png", reveal:"Niño real, habla de patio/deberes, evita compartir datos.", flags:["Vocabulario simple","Rutinas infantiles","Evita datos"]},
+  C: { label:"Rubén", persona:"Insegura/Unsafe", truth:"impostor", avatar:"img/ruben.png", reveal:"Presiona para mover chat, pide datos/fotos, usa halagos o secretos.", flags:["Mover a otra app","Pide datos/fotos","Secretos/urgencia"]},
+  D: { label:"Laura", persona:"Insegura/Unsafe", truth:"impostor", avatar:"img/laura.png", reveal:"Incongruencias de vocabulario/horarios, insiste en fotos y privado.", flags:["Incongruencias","Pide foto","Privado/Secreto"]},
 };
 const botOrder = ['A','C','D'];
 
@@ -1714,6 +1714,7 @@ reset();
 </html>
 
  
+
 
 
 
